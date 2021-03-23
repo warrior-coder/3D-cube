@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>3D-cube</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        BODY {
+            
+            margin: 0;
+            padding: 0;
+
+            
+        }
+        #VUE1 {
+            position: absolute;
+            width: 100%;
+            height: 98%;
+
+           
+            user-select: none;
+            background: rgb(34, 34, 34);
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .void {
+            position: relative;
+            width: 300px;
+            height: 300px;
+
+           
+            perspective: 500px;
+        }
+        .cube {
+            margin: auto;
+            width: 300px;
+            height: 300px;
+            transform-style: preserve-3d;
+        }
+        .side {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            border: 5px solid black;
+            font: normal 70px Arial;
+            text-align: center;
+            line-height: 300px;
+        }
+        
+    </style>
+</head>
+<body>
+    <div id="VUE1"  @mousedown="voidMouseDown" @mouseup="voidMouseUp" @mousemove="voidMouseMove">
+        <div class="void">
+            <div class="cube"
+                :style="{
+                    transform:  'rotateX(' + cubeRotX + 'deg) rotateY(' + cubeRotY + 'deg) rotateZ(' + cubeRotZ + 'deg)',
+                }">
+
+                <div v-for="side in cube" class="side"
+                    :style="{
+                        transform:  'rotateX(' + side.rotX + 'deg) rotateY(' + side.rotY + 'deg) translateZ(' + side.tranZ + 'px)',
+                        color: side.color
+                    }">
+
+                    {{ side.name }}
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const _CUBE = [
+            { name: 'front', color: 'lime', rotX: 0, rotY: 0, tranZ: 150 },
+            { name: 'back', color: 'blue', rotX: 0, rotY: 180, tranZ: 150 },
+            { name: 'left', color: 'orange', rotX: 0, rotY: -90, tranZ: 150 },
+            { name: 'right', color: 'red', rotX: 0, rotY: 90, tranZ: 150 },
+            { name: 'top', color: 'white', rotX: 90, rotY: 0, tranZ: 150 },
+            { name: 'bottom', color: 'yellow', rotX: -90, rotY: 0, tranZ: 150 }
+        ];
+
+        var ISIDE_VOID = false, ISIDE_CUBE = false, MOUSE_DOWN = false, mX0, mY0, rotX = 0, rotY = 0, rotZ = 0;
+
+        const VUE1 = new Vue({
+            el: '#VUE1',
+            data: {
+                cube: _CUBE,
+                cubeRotX: 0,
+                cubeRotY: 0,
+                cubeRotZ: 0,
+            },
+            methods: {
+                voidMouseDown(e)
+                {
+                    if (e.target == document.getElementById('VUE1'))
+                    {
+                        ISIDE_VOID = true;
+                        ISIDE_CUBE = false;
+                    }
+                    else if (e.target.className.indexOf('side') != -1)
+                    {
+                        ISIDE_VOID = false;
+                        ISIDE_CUBE = true;
+                    }
+
+                    MOUSE_DOWN = true;
+                    mX0 = e.pageX;
+                    mY0 = e.pageY;
+
+                },
+                voidMouseUp(e)
+                {
+                    MOUSE_DOWN = false;
+                    console.log(rotX, rotY, rotZ);
+                },
+                voidMouseMove(e)
+                {
+                    if (ISIDE_VOID && MOUSE_DOWN)
+                    {
+                        rotY += -Math.round((e.pageX - mX0)/3.333);
+                        rotX += Math.round((e.pageY - mY0)/3.333);
+                        if (rotX > 45) rotX = 45;
+                        if (rotX < -45) rotX = -45;
+                        if (rotY > 360) rotY -= 360;
+                        if (rotY < -360) rotY += 360;
+
+                        mX0 = e.pageX;
+                        mY0 = e.pageY;
+
+                        
+                        this.cubeRotX = -rotX;
+                        this.cubeRotY = -rotY;
+                        this.cubeRotZ = rotZ;
+                        
+                    }
+                },
+            }
+        });
+    </script>
+</body>
+</html>
