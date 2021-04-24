@@ -1,40 +1,38 @@
 <!DOCTYPE html>
-<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>3D-cube</title>
+    <title>3D cube</title>
     <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
-
     <style>
         * {
             box-sizing: border-box;
         }
         BODY {
-            
             margin: 0;
             padding: 0;
-
+            font: normal 20px Arial;
             
         }
-        #VUE1 {
+        #CONTAINER {
             position: absolute;
             width: 100%;
-            height: 98%;
+            height: 100%;
 
-           
-            user-select: none;
             background: rgb(34, 34, 34);
 
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        .void {
+        .ref {
+            position: absolute;
+            bottom: 5px;
+            font-size: 1.5em;
+            color: rgba(255, 255, 255, 0.15);
+        }
+        .cube_container {
             position: relative;
             width: 300px;
             height: 300px;
-
-           
             perspective: 500px;
         }
         .cube {
@@ -47,100 +45,142 @@
             position: absolute;
             width: 300px;
             height: 300px;
+
             border: 5px solid black;
-            font: normal 70px Arial;
-            text-align: center;
-            line-height: 300px;
+            background: rgba(0, 0, 0, 0.05);
+            box-shadow: inset 0px 0px 40px 0px rgba(0, 0, 0, 0.5);
+            
+            font-size: 3.5em;
+            user-select: none;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        
     </style>
 </head>
 <body>
-    <div id="VUE1"  @mousedown="voidMouseDown" @mouseup="voidMouseUp" @mousemove="voidMouseMove">
-        <div class="void">
+    <div id="CONTAINER"  
+        @mousedown="voidMouseDown"
+        @touchstart="voidTouchStart"
+    >
+    <a class="ref" href="https://github.com/warrior-coder">WARRIOR-CODER</a>
+    <div class="cube_container">
             <div class="cube"
-                :style="{
-                    transform:  'rotateX(' + cubeRotX + 'deg) rotateY(' + cubeRotY + 'deg) rotateZ(' + cubeRotZ + 'deg)',
-                }">
-
-                <div v-for="side in cube" class="side"
+            :style="{
+                transform:  'rotateX(' + cubeRotX + 'deg) rotateY(' + cubeRotY + 'deg) rotateZ(0deg)'
+            }">
+                <div class="side"
+                    v-for="side in cube"
                     :style="{
-                        transform:  'rotateX(' + side.rotX + 'deg) rotateY(' + side.rotY + 'deg) translateZ(' + side.tranZ + 'px)',
-                        color: side.color
+                        transform:  'rotateX(' + side.rotX + 'deg) rotateY(' + side.rotY + 'deg) translateZ(150px)',
+                        color: side.color,
                     }">
 
-                    {{ side.name }}
+                    {{side.name}}
+
                 </div>
             </div>
-
         </div>
     </div>
 
     <script>
-        const _CUBE = [
-            { name: 'front', color: 'lime', rotX: 0, rotY: 0, tranZ: 150 },
-            { name: 'back', color: 'blue', rotX: 0, rotY: 180, tranZ: 150 },
-            { name: 'left', color: 'orange', rotX: 0, rotY: -90, tranZ: 150 },
-            { name: 'right', color: 'red', rotX: 0, rotY: 90, tranZ: 150 },
-            { name: 'top', color: 'white', rotX: 90, rotY: 0, tranZ: 150 },
-            { name: 'bottom', color: 'yellow', rotX: -90, rotY: 0, tranZ: 150 }
+        // global vars
+        const _CUBE_SIDES_ = [
+            { name: 'front', color: 'lime', rotX: 0, rotY: 0 },
+            { name: 'back', color: 'blue', rotX: 0, rotY: 180 },
+            { name: 'left', color: 'orange', rotX: 0, rotY: -90 },
+            { name: 'right', color: 'red', rotX: 0, rotY: 90 },
+            { name: 'top', color: 'white', rotX: 90, rotY: 0 },
+            { name: 'bottom', color: 'yellow', rotX: -90, rotY: 0 }
         ];
+        var MOVE = false, mX0, mY0, rotX = 0, rotY = 0, rotZ = 0;
 
-        var ISIDE_VOID = false, ISIDE_CUBE = false, MOUSE_DOWN = false, mX0, mY0, rotX = 0, rotY = 0, rotZ = 0;
-
-        const VUE1 = new Vue({
-            el: '#VUE1',
+        // VUE
+        const CONTAINER = new Vue({
+            el: '#CONTAINER',
             data: {
-                cube: _CUBE,
-                cubeRotX: 0,
-                cubeRotY: 0,
-                cubeRotZ: 0,
+                cube: _CUBE_SIDES_,
+                cubeRotX: rotX,
+                cubeRotY: rotY,
+                cubeRotZ: rotZ,
             },
+            // VUE events
             methods: {
                 voidMouseDown(e)
                 {
-                    if (e.target == document.getElementById('VUE1'))
+                    if (e.target.className.indexOf('side') != -1)
                     {
-                        ISIDE_VOID = true;
-                        ISIDE_CUBE = false;
+                        MOVE = true;
+                        mX0 = e.pageX;
+                        mY0 = e.pageY;
                     }
-                    else if (e.target.className.indexOf('side') != -1)
-                    {
-                        ISIDE_VOID = false;
-                        ISIDE_CUBE = true;
-                    }
-
-                    MOUSE_DOWN = true;
-                    mX0 = e.pageX;
-                    mY0 = e.pageY;
-
+                    else MOVE = false;
+                    
                 },
-                voidMouseUp(e)
+                voidTouchStart(e)
                 {
-                    MOUSE_DOWN = false;
+                    
+                    if (e.target.className.indexOf('side') != -1)
+                    {
+                        MOVE = true;
+                        mX0 = e.changedTouches[0].pageX;
+                        mY0 = e.changedTouches[0].pageY;
+                    }
+                    else MOVE = false;
+                },
+            },
+            mounted() {
+                // document events
+                document.addEventListener('mouseup', () => {
+                    MOVE = false;
                     console.log(rotX, rotY, rotZ);
-                },
-                voidMouseMove(e)
-                {
-                    if (ISIDE_VOID && MOUSE_DOWN)
+                });
+                document.addEventListener('touchend', () => {
+                    MOVE = false;
+                    console.log(rotX, rotY, rotZ);
+                });
+
+                document.addEventListener('mousemove', (e) => {
+                    if (MOVE)
                     {
-                        rotY += -Math.round((e.pageX - mX0)/3.333);
-                        rotX += Math.round((e.pageY - mY0)/3.333);
+                        rotY += Math.round((e.pageX - mX0) / 3.333);
+                        rotX += -Math.round((e.pageY - mY0) / 3.333);
+
+                        // rotation borders
                         if (rotX > 45) rotX = 45;
-                        if (rotX < -45) rotX = -45;
+                        else if (rotX < -45) rotX = -45;
                         if (rotY > 360) rotY -= 360;
-                        if (rotY < -360) rotY += 360;
+                        else if (rotY < -360) rotY += 360;
 
                         mX0 = e.pageX;
                         mY0 = e.pageY;
 
-                        
-                        this.cubeRotX = -rotX;
-                        this.cubeRotY = -rotY;
-                        this.cubeRotZ = rotZ;
-                        
+                        this.cubeRotX = rotX;
+                        this.cubeRotY = rotY;
+                        this.cubeRotZ = rotZ;   
                     }
-                },
+                });
+                document.addEventListener('touchmove', (e) => {
+                    if (MOVE)
+                    {
+                        rotY += Math.round((e.changedTouches[0].pageX - mX0) / 4);
+                        rotX += -Math.round((e.changedTouches[0].pageY - mY0) / 4);
+
+                        // rotation borders
+                        if (rotX > 45) rotX = 45;
+                        else if (rotX < -45) rotX = -45;
+                        if (rotY > 360) rotY -= 360;
+                        else if (rotY < -360) rotY += 360;
+
+                        mX0 = e.changedTouches[0].pageX;
+                        mY0 = e.changedTouches[0].pageY;
+
+                        this.cubeRotX = rotX;
+                        this.cubeRotY = rotY;
+                        this.cubeRotZ = rotZ;   
+                    }
+                });
             }
         });
     </script>
