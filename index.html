@@ -1,42 +1,24 @@
 <!DOCTYPE html>
 <head>
-    <title>3D cube</title>
-    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+    <title>Cube 3D</title>
     <style>
-        * {
-            box-sizing: border-box;
-        }
         BODY {
             margin: 0;
             padding: 0;
             font: normal 20px Arial;
-            
         }
-        #CONTAINER {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-
-            background: rgb(34, 34, 34);
+        #cube_container {
+            width: 100vw;
+            height: 100vh;
+            perspective: 500px;
+            user-select: none;
+            background-color: rgb(34, 34, 34);
 
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        .ref {
-            position: absolute;
-            bottom: 5px;
-            font-size: 1.5em;
-            color: rgba(255, 255, 255, 0.15);
-        }
-        .cube_container {
-            position: relative;
-            width: 300px;
-            height: 300px;
-            perspective: 500px;
-        }
         .cube {
-            margin: auto;
             width: 300px;
             height: 300px;
             transform-style: preserve-3d;
@@ -46,143 +28,121 @@
             width: 300px;
             height: 300px;
 
+            box-sizing: border-box;
             border: 5px solid black;
             background: rgba(0, 0, 0, 0.05);
             box-shadow: inset 0px 0px 40px 0px rgba(0, 0, 0, 0.5);
-            
             font-size: 3.5em;
-            user-select: none;
 
             display: flex;
             align-items: center;
             justify-content: center;
         }
+        .front {
+            transform: rotateY(0deg) translateZ(150px);
+            color: lime;
+        }
+        .back {
+            transform: rotateY(180deg) translateZ(150px);
+            color: blue;
+        }
+        .right {
+            transform: rotateY(90deg) translateZ(150px);
+            color: red;
+        }
+        .left {
+            transform: rotateY(-90deg) translateZ(150px);
+            color: orange;
+        }
+        .top {
+            transform: rotateX(90deg) translateZ(150px);
+            color: white;
+        }
+        .bottom {
+            transform: rotateX(-90deg) translateZ(150px);
+            color: yellow;
+        }
     </style>
 </head>
 <body>
-    <div id="CONTAINER"  
-        @mousedown="voidMouseDown"
-        @touchstart="voidTouchStart"
-    >
-    <a class="ref" href="https://github.com/warrior-coder">WARRIOR-CODER</a>
-    <div class="cube_container">
-            <div class="cube"
-            :style="{
-                transform:  'rotateX(' + cubeRotX + 'deg) rotateY(' + cubeRotY + 'deg) rotateZ(0deg)'
-            }">
-                <div class="side"
-                    v-for="side in cube"
-                    :style="{
-                        transform:  'rotateX(' + side.rotX + 'deg) rotateY(' + side.rotY + 'deg) translateZ(150px)',
-                        color: side.color,
-                    }">
-
-                    {{side.name}}
-
-                </div>
-            </div>
+    <div id="cube_container">
+        <div class="cube">
+            <div class="side front">front</div>
+            <div class="side back">back</div>
+            <div class="side right">right</div>
+            <div class="side left">left</div>
+            <div class="side top">top</div>
+            <div class="side bottom">bottom</div>
         </div>
     </div>
 
     <script>
-        // global vars
-        const _CUBE_SIDES_ = [
-            { name: 'front', color: 'lime', rotX: 0, rotY: 0 },
-            { name: 'back', color: 'blue', rotX: 0, rotY: 180 },
-            { name: 'left', color: 'orange', rotX: 0, rotY: -90 },
-            { name: 'right', color: 'red', rotX: 0, rotY: 90 },
-            { name: 'top', color: 'white', rotX: 90, rotY: 0 },
-            { name: 'bottom', color: 'yellow', rotX: -90, rotY: 0 }
-        ];
-        var MOVE = false, mX0, mY0, rotX = 0, rotY = 0, rotZ = 0;
+        const CUBE = document.querySelector('.cube');
+        var MOVE = false, 
+            mX0, mY0, 
+            rotX = 0, rotY = 0;
 
-        // VUE
-        const CONTAINER = new Vue({
-            el: '#CONTAINER',
-            data: {
-                cube: _CUBE_SIDES_,
-                cubeRotX: rotX,
-                cubeRotY: rotY,
-                cubeRotZ: rotZ,
-            },
-            // VUE events
-            methods: {
-                voidMouseDown(e)
-                {
-                    if (e.target.className.indexOf('side') != -1)
-                    {
-                        MOVE = true;
-                        mX0 = e.pageX;
-                        mY0 = e.pageY;
-                    }
-                    else MOVE = false;
-                    
-                },
-                voidTouchStart(e)
-                {
-                    
-                    if (e.target.className.indexOf('side') != -1)
-                    {
-                        MOVE = true;
-                        mX0 = e.changedTouches[0].pageX;
-                        mY0 = e.changedTouches[0].pageY;
-                    }
-                    else MOVE = false;
-                },
-            },
-            mounted() {
-                // document events
-                document.addEventListener('mouseup', () => {
-                    MOVE = false;
-                    console.log(rotX, rotY, rotZ);
-                });
-                document.addEventListener('touchend', () => {
-                    MOVE = false;
-                    console.log(rotX, rotY, rotZ);
-                });
+        // -+-+-+-+-+-+-+-+-+-+-+-+- Mouse Events -+-+-+-+-+-+-+-+-+-+-+-+-
+        document.addEventListener('mousedown', (e) => {
+            if (e.target.className.indexOf('side') != -1)
+            {
+                MOVE = true;
+                mX0 = e.pageX;
+                mY0 = e.pageY;
+            }
+            else MOVE = false;
+        });
+        document.addEventListener('mousemove', (e) => {
+            if (MOVE)
+            {
+                // Convert swipe to rotation
+                rotY += Math.round((e.pageX - mX0) / 3.333);
+                rotX += -Math.round((e.pageY - mY0) / 3.333);
+                mX0 = e.pageX;
+                mY0 = e.pageY;
 
-                document.addEventListener('mousemove', (e) => {
-                    if (MOVE)
-                    {
-                        rotY += Math.round((e.pageX - mX0) / 3.333);
-                        rotX += -Math.round((e.pageY - mY0) / 3.333);
+                // Rotation borders
+                if (rotX > 45) rotX = 45;
+                else if (rotX < -45) rotX = -45;
+                if (rotY > 360) rotY -= 360;
+                else if (rotY < -360) rotY += 360;
 
-                        // rotation borders
-                        if (rotX > 45) rotX = 45;
-                        else if (rotX < -45) rotX = -45;
-                        if (rotY > 360) rotY -= 360;
-                        else if (rotY < -360) rotY += 360;
+                // Apply changes
+                CUBE.style.transform =  'rotateX(' + rotX + 'deg) rotateY(' + rotY + 'deg) rotateZ(0deg)';
+            }
+        });
+        document.addEventListener('mouseup', () => {
+            MOVE = false;
+        });
 
-                        mX0 = e.pageX;
-                        mY0 = e.pageY;
+        // -+-+-+-+-+-+-+-+-+-+-+-+- Touch Events -+-+-+-+-+-+-+-+-+-+-+-+-
+        document.addEventListener('touchstart', (e) => {
+            if (e.target.className.indexOf('side') != -1)
+            {
+                MOVE = true;
+                mX0 = e.changedTouches[0].pageX;
+                mY0 = e.changedTouches[0].pageY;
+            }
+            else MOVE = false;
+        });
+        document.addEventListener('touchmove', (e) => {
+            if (MOVE)
+            {
+                // Convert swipe to rotation
+                rotY += Math.round((e.changedTouches[0].pageX - mX0) / 4);
+                rotX += -Math.round((e.changedTouches[0].pageY - mY0) / 4);
+                mX0 = e.changedTouches[0].pageX;
+                mY0 = e.changedTouches[0].pageY;
 
-                        this.cubeRotX = rotX;
-                        this.cubeRotY = rotY;
-                        this.cubeRotZ = rotZ;   
-                    }
-                });
-                document.addEventListener('touchmove', (e) => {
-                    if (MOVE)
-                    {
-                        rotY += Math.round((e.changedTouches[0].pageX - mX0) / 4);
-                        rotX += -Math.round((e.changedTouches[0].pageY - mY0) / 4);
+                // Rotation borders
+                if (rotX > 45) rotX = 45;
+                else if (rotX < -45) rotX = -45;
+                if (rotY > 360) rotY -= 360;
+                else if (rotY < -360) rotY += 360;
 
-                        // rotation borders
-                        if (rotX > 45) rotX = 45;
-                        else if (rotX < -45) rotX = -45;
-                        if (rotY > 360) rotY -= 360;
-                        else if (rotY < -360) rotY += 360;
-
-                        mX0 = e.changedTouches[0].pageX;
-                        mY0 = e.changedTouches[0].pageY;
-
-                        this.cubeRotX = rotX;
-                        this.cubeRotY = rotY;
-                        this.cubeRotZ = rotZ;   
-                    }
-                });
+                // Apply changes
+                CUBE.style.transform =  'rotateX(' + rotX + 'deg) rotateY(' + rotY + 'deg) rotateZ(0deg)';
             }
         });
     </script>
 </body>
-</html>
